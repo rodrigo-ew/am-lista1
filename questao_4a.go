@@ -4,7 +4,14 @@ import(
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 	"strconv"
+
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
+
 	"aprendizado-maquina/utils"
 )
 
@@ -21,21 +28,60 @@ type CVRating struct {
 
 func main() {
 
-	generateDatasets()
-	//plot()
+	//generateDatasets()
+	plotGraph()
 
 }
 
-/*
-func plot() {
 
-	filename := "glass"
-	filename := "ionosphere"
+func plotGraph() {
+
+	filename := "cv_ordered/glass"
+	//filename := "cv_ordered/ionosphere"
 
 	data := utils.ReadFile(filename + "_cv.csv")
+
+	var list []Dataset
+
+	for _,line := range data {
+		errorRate,_ := strconv.ParseFloat(line[0],64)
+		attrNumber,_ := strconv.ParseInt(line[1], 10, 32)
+		attrList := strings.Split(line[2], " ")
+
+		list = append(list, Dataset{errorRate, int(attrNumber), attrList})
+	}
+
+	xy := map[int]float64{} 
+	
+	for _,item := range list {
+		xy[item.AttrNumber] = item.ErrorRate
+	}
+
+	pts := make(plotter.XYs, len(xy))
+
+	for i := range pts {
+		pts[i].X = float64(i+1)
+		pts[i].Y = xy[i+1]
+
+	}
+
+	p := plot.New()
+
+	p.Title.Text = "Taxa de Erro vs CV"
+	p.X.Label.Text = "quantidade de atributos considerados"
+	p.Y.Label.Text = "Taxa de Erro"
+
+	err := plotutil.AddLinePoints(p,pts)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := p.Save(8*vg.Inch, 8*vg.Inch, "histogramas/glass.png"); err != nil {
+		panic(err)
+	}
 	
 }
-*/
+
 
 func generateDatasets() {
 	// 1 parte : criar os datasets com conjuntos de dados
